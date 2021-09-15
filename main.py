@@ -52,7 +52,7 @@ if USERNAME is None or PASSWORD is None:
     LOCATION = str(input("请将您所复制的经纬度粘贴到此处："))
     # COORD = str(input("请将您所在的区域【如：中国-云南省-昆明市-官渡区】："))
     EMAIL = input("接收邮箱账号,留空则不开启:")
-    print("微信通知,开启需填写KEY，教程：http://note.youdao.com/s/HMiudGkb")
+    print("微信通知,开启需填写KEY，教程：https://ghurl.github.io/?130")
     WX_APP = input("微信通知密钥,留空则不开启:")
     PASSWORD = str(base64.b64encode(PASSWORD.encode()).decode())
 else:
@@ -75,7 +75,7 @@ def get_location():
         os._exit(0)
 
 
-def get_param():
+def get_param(coord):
     # 体温随机为35.7~36.7
     temperature = str(random.randint(357, 367) / 10)
     # 107.807008,26.245838
@@ -87,7 +87,7 @@ def get_param():
     location = location_x + ',' + location_y
     return {
         "temperature": temperature,
-        "coordinates": COORD,
+        "coordinates": coord,
         "location": location,
         "healthState": "1",
         "dangerousRegion": "2",
@@ -124,7 +124,8 @@ def wxapp_notify(content):
     }
     response = requests.post(url=url, headers=headers, data=json.dumps(payload), timeout=15).json()
     accesstoken = response["access_token"]
-    html = content + "<br/>打卡时间：" + time.strftime("%Y-%m-%d  %H:%M:%S")
+    content = "打卡情况：[" + content + "]\n打卡位置：[" + COORD + "]\n打卡日期：[" + time.strftime("%Y-%m-%d") + "]"
+    html = content.replace("\n", "<br/>")
     options = {
         'msgtype': 'mpnews',
         'mpnews': {
@@ -205,15 +206,16 @@ if __name__ == '__main__':
         HEADERS['authorization'] = json.loads(res)['token']
 
         # 获取位置
-        if COORD is None:
+        if COORD is None or COORD == '':
             COORD = get_location()
         else:
             pass
 
         health_param = None
 
+        print(COORD)
         if LOCATION is not None and COORD is not None:
-            health_param = get_param()
+            health_param = get_param(COORD)
         else:
             print("必要参数为空！")
 
@@ -222,14 +224,14 @@ if __name__ == '__main__':
         # succeed return {'msg': '操作成功', 'code': 200}
         status = json.loads(respond)['code']
         if status == 200:
-            print("恭喜您打卡成功了！")
+            print("恭喜您打卡成功啦！")
             if EMAIL != '':
-                send_mail("恭喜您今天打卡成功啦^_^")
+                send_mail("打卡成功啦🎉")
             if WX_APP != '':
-                wxapp_notify("恭喜您今天打卡成功啦^_^")
+                wxapp_notify("打卡成功啦🎉")
         else:
             print("Error：" + json.loads(respond)['msg'])
             if EMAIL != 'yes':
-                send_mail("抱歉打卡失败了，原因未知，请自信手动打卡，谢谢>_<")
+                send_mail("🙁抱歉打卡失败了，原因未知，请自行手动打卡，谢谢")
             if WX_APP != '':
-                wxapp_notify("抱歉打卡失败了，原因未知，请自信手动打卡，谢谢>_<")
+                wxapp_notify("🙁抱歉打卡失败了，原因未知，请自行手动打卡，谢谢")
