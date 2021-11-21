@@ -18,9 +18,9 @@ COORD = os.getenv("XB_COORD")
 EMAIL = os.getenv("XB_EMAIL")
 # 企业微信应用
 WX_APP = os.getenv("XB_WXAPP")
-
 # 基本链接
 BASE_URL = "https://xiaobei.yinghuaonline.com/xiaobei-api/"
+
 # header
 HEADERS = {
     "user-agent": "iPhone10,3(iOS/14.4) Uninview(Uninview/1.0.0) Weex/0.26.0 1125x2436",
@@ -112,6 +112,11 @@ def send_mail(context):
         print("通知发送失败，原因：" + json.loads(result)['msg'])
 
 
+# 一言
+def yiyan():
+    return requests.get("https://api.xiaobaibk.com/api/yiyan.php").text
+
+
 def wxapp_notify(content):
     app_params = WX_APP.split(',')
     url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken'
@@ -124,7 +129,7 @@ def wxapp_notify(content):
     }
     response = requests.post(url=url, headers=headers, data=json.dumps(payload), timeout=15).json()
     accesstoken = response["access_token"]
-    content = "打卡情况：[" + content + "]\n打卡位置：[" + COORD + "]\n打卡日期：[" + time.strftime("%Y-%m-%d") + "]"
+    content = "打卡情况：[" + content + "]\n打卡位置：[" + COORD + "]\n打卡日期：[" + time.strftime("%Y-%m-%d") + "]\n随言：["+yiyan()+"]"
     html = content.replace("\n", "<br/>")
     options = {
         'msgtype': 'mpnews',
@@ -164,6 +169,8 @@ if __name__ == '__main__':
     # Url
     # 滑动验证
     captcha = BASE_URL + 'captchaImage'
+    # captcha = 'https://xiaobei.yinghuaonline.com/xiaobei-api/captchaImage'
+    # https://xiaobei.yinghuaonline.com/xiaobei-api/captchaImage
     # 登录
     login = BASE_URL + 'login'
     # 打卡
